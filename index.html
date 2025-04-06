@@ -1,45 +1,76 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const { signUp, verifyEmail } = require('./userController'); // تأكد من أن الدوال موجودة في userController
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرحبا بك في التطبيق</title>
+</head>
+<body>
+    <h1>مرحبا بك في صفحة التسجيل</h1>
+    
+    <form id="signupForm">
+        <label for="nom">الاسم:</label>
+        <input type="text" id="nom" name="nom" required><br>
 
-const PORT = 3000;
+        <label for="prenom">اللقب:</label>
+        <input type="text" id="prenom" name="prenom" required><br>
 
-const server = http.createServer((req, res) => {
-  // تحديد نوع المحتوى بناءً على المسار
-  if (req.method === 'POST' && req.url === '/signup') {
-    // استدعاء دالة signUp من userController
-    signUp(req, res);
-  } else if (req.method === 'POST' && req.url === '/verify-email') {
-    // استدعاء دالة verifyEmail من userController
-    verifyEmail(req, res);
-  } else {
-    // التعامل مع الملفات الثابتة مثل HTML و CSS
-    let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
-    let extname = path.extname(filePath);
-    let contentType = 'text/html; charset=UTF-8';
+        <label for="email">البريد الإلكتروني:</label>
+        <input type="email" id="email" name="email" required><br>
 
-    // تحديد نوع المحتوى بناءً على امتداد الملف
-    if (extname === '.js') contentType = 'application/javascript';
-    else if (extname === '.css') contentType = 'text/css';
-    else if (extname === '.json') contentType = 'application/json';
-    else if (extname === '.png') contentType = 'image/png';
-    else if (extname === '.jpg' || extname === '.jpeg') contentType = 'image/jpeg';
-    else if (extname === '.gif') contentType = 'image/gif';
+        <label for="telephone">الهاتف:</label>
+        <input type="text" id="telephone" name="telephone" required><br>
 
-    // قراءة الملف وإرساله في الاستجابة
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(404, { 'Content-Type': 'text/html; charset=UTF-8' });
-        res.end('<h1>الصفحة غير موجودة.</h1>');
-      } else {
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(data);
-      }
-    });
-  }
-});
+        <label for="adresse">العنوان:</label>
+        <input type="text" id="adresse" name="adresse" required><br>
 
-server.listen(PORT, () => {
-  console.log(server يعمل على http://localhost:${PORT});
-});
+        <label for="mot_de_passe">كلمة المرور:</label>
+        <input type="password" id="mot_de_passe" name="mot_de_passe" required><br>
+
+        <button type="submit">تسجيل</button>
+    </form>
+
+    <script>
+        // تحديد النموذج
+        const form = document.getElementById('signupForm');
+
+        // عندما يتم تقديم النموذج
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault(); // منع إرسال النموذج بشكل تقليدي
+
+            // جمع البيانات من النموذج
+            const formData = new FormData(form);
+            const data = {
+                nom: formData.get('nom'),
+                prenom: formData.get('prenom'),
+                email: formData.get('email'),
+                telephone: formData.get('telephone'),
+                adresse: formData.get('adresse'),
+                mot_de_passe: formData.get('mot_de_passe')
+            };
+
+            try {
+                // إرسال البيانات إلى API باستخدام fetch
+                const response = await fetch('http://localhost:3000/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                // التعامل مع الاستجابة من الخادم
+                const result = await response.json();
+                if (response.ok) {
+                    alert('تم التسجيل بنجاح!'); // يمكن إضافة رسالة نجاح هنا
+                } else {
+                    alert('حدث خطأ: ' + result.error); // عرض الخطأ إذا كان هناك
+                }
+            } catch (error) {
+                console.error('حدث خطأ أثناء الإرسال:', error);
+                alert('حدث خطأ أثناء الاتصال بالخادم');
+            }
+        });
+    </script>
+</body>
+</html>
